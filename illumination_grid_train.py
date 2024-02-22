@@ -10,7 +10,7 @@ from cldm.model import create_model, load_state_dict
 # Configs
 base_checkpoint = './models/control_sd15_ini.ckpt'
 resume_checkpoint = sys.argv[1] if len(sys.argv) > 1 else None
-batch_size = 4
+batch_size = 24
 logger_freq = 300
 learning_rate = 1e-5
 sd_locked = True
