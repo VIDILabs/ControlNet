@@ -140,3 +140,81 @@ class IlluminationProceduralGridDataset(Dataset):
         target = np.concatenate([target0, target1], axis=1)
 
         return dict(jpg=target, txt=prompt, hint=source)
+
+
+class IlluminationMultimodalDataset(Dataset):
+    def __init__(self):
+        self.data = []
+        with open('./training/illum_multimodal/prompt.json', 'rt') as f:
+            for line in f:
+                self.data.append(json.loads(line))
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        item = self.data[idx]
+
+        source_filename = item['source']
+        target_filename = item['target']
+        prompt = item['prompt']
+
+        source = cv2.imread('./training/illum_multimodal/' + source_filename)
+        target = cv2.imread('./training/illum_multimodal/' + target_filename)
+
+        # Do not forget that OpenCV read images in BGR order.
+        source = cv2.cvtColor(source, cv2.COLOR_BGR2RGB)
+        target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB)
+
+        # Resize if needed
+        if (source.shape[0] > target.shape[0]):
+            source = cv2.resize(source, (target.shape[0], target.shape[1]))
+        if (target.shape[0] > source.shape[0]):
+            target = cv2.resize(target, (source.shape[0], source.shape[1]))
+
+        # Normalize source images to [0, 1].
+        source = source.astype(np.float32) / 255.0
+
+        # Normalize target images to [-1, 1].
+        target = (target.astype(np.float32) / 127.5) - 1.0
+
+        return dict(jpg=target, txt=prompt, hint=source)
+
+class IlluminationMultimodalSelftrainingDataset(Dataset):
+    def __init__(self):
+        self.data = []
+        with open('./training/illum_multimodal_selftraining/prompt.json', 'rt') as f:
+            prompts = json.load(f)
+            for prompt in prompts['data']:
+                self.data.append(prompt)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        item = self.data[idx]
+
+        source_filename = item['source']
+        target_filename = item['target']
+        prompt = item['prompt']
+
+        source = cv2.imread('./training/illum_multimodal_selftraining/' + source_filename)
+        target = cv2.imread('./training/illum_multimodal_selftraining/' + target_filename)
+
+        # Do not forget that OpenCV read images in BGR order.
+        source = cv2.cvtColor(source, cv2.COLOR_BGR2RGB)
+        target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB)
+
+        # Resize if needed
+        if (source.shape[0] > target.shape[0]):
+            source = cv2.resize(source, (target.shape[0], target.shape[1]))
+        if (target.shape[0] > source.shape[0]):
+            target = cv2.resize(target, (source.shape[0], source.shape[1]))
+
+        # Normalize source images to [0, 1].
+        source = source.astype(np.float32) / 255.0
+
+        # Normalize target images to [-1, 1].
+        target = (target.astype(np.float32) / 127.5) - 1.0
+
+        return dict(jpg=target, txt=prompt, hint=source)

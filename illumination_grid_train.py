@@ -2,6 +2,7 @@ from share import *
 
 import sys
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import ModelCheckpoint
 from torch.utils.data import DataLoader
 from illumination_dataset import IlluminationGridDataset
 from cldm.logger import ImageLogger
@@ -10,7 +11,7 @@ from cldm.model import create_model, load_state_dict
 # Configs
 base_checkpoint = './models/control_sd15_ini.ckpt'
 resume_checkpoint = sys.argv[1] if len(sys.argv) > 1 else None
-batch_size = 24
+batch_size = 8
 logger_freq = 300
 learning_rate = 1e-5
 sd_locked = True
@@ -29,7 +30,10 @@ model.only_mid_control = only_mid_control
 dataset = IlluminationGridDataset()
 dataloader = DataLoader(dataset, num_workers=88, batch_size=batch_size, shuffle=True)
 logger = ImageLogger(batch_frequency=logger_freq)
-trainer = pl.Trainer(gpus=1, precision=32, callbacks=[logger], resume_from_checkpoint=resume_checkpoint)
+checkpoints = ModelCheckpoint(monitor='epoch',
+                              save_top_k=-1,
+                              every_n_epochs=5)
+trainer = pl.Trainer(gpus=1, precision=32, callbacks=[logger, checkpoints], resume_from_checkpoint=resume_checkpoint)
 
 
 # Train!
